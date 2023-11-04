@@ -4,12 +4,7 @@ from imutils.video import FileVideoStream
 from loguru import logger
 from sklearn.cluster import MiniBatchKMeans
 
-import argparse
-import cv2
-import imutils
-import numpy as np
-import sys
-import xlsxwriter
+import argparse, cv2, imutils, numpy as np, sys, xlsxwriter
 
 ap = argparse.ArgumentParser()
 ap.add_argument("-i", "--input", required = True, help = "path to input video file")
@@ -26,17 +21,11 @@ length = int(cv2.VideoCapture(args["input"]).get(7))
 if args["debug"]: logger.debug("File contains {} frames, expect {} frames in output", length, length // args["frame"])
 if args["debug"]: logger.debug("Projected maximum color usage: {}", length // args["frame"] * args["colors"])
 if length // args["frame"] * args["colors"] > 64000: logger.warning("Current settings may exceed the maximum number of colors permitted in an XLSX file (64000)")
-width = 640
-height = 360
-count = 0
+width, height, count = 640, 360, 0
 
 workbook = xlsxwriter.Workbook(args["output"], {'constant_memory': True})
-
 palette = {}
-clt = None
-labels = None
-quant = None
-
+clt, labels, quant = None
 while cap.more():
 	frame = cap.read()
 	if frame is None:
@@ -67,7 +56,7 @@ while cap.more():
 					palette[color] = workbook.add_format({'bg_color': f'#{color}'})
 				cell_format = palette[color]
 				current.write_blank(row, col, None, cell_format)
-	count = count + 1
+	count += 1
 
 if len(palette) > 64000: logger.warning("""
 	Palette size ({}) exceeds the maximum permitted under the XLSX specification (64000).
